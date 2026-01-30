@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --foreground-rgb: 24, 24, 27; /* Zinc 900 */
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+/* Custom Selection Color */
+::selection {
+  background-color: #F2C7C7; /* Blush Pink */
+  color: #18181b;
+}
+
+/* Hide scrollbar for clean UI but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
