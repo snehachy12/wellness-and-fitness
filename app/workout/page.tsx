@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import Cursor from "@/components/Cursor"
 import { motion, AnimatePresence } from "framer-motion"
-import { Play, CheckCircle2, Circle, Clock, ChevronLeft, Trophy } from "lucide-react"
+import { Play, CheckCircle2, Circle, Clock, ChevronLeft, Trophy, Flame, RotateCcw, Bell, X } from "lucide-react"
 
 // --- TYPES ---
 type Video = {
@@ -12,7 +12,7 @@ type Video = {
   day: string
   title: string
   duration: string
-  videoUrl: string // In a real app, this would be the YouTube ID
+  videoUrl: string 
 }
 
 type Plan = {
@@ -24,36 +24,49 @@ type Plan = {
   videos: Video[]
 }
 
-// --- MOCK DATA (Based on your Screenshot) ---
+// --- HELPER: EXTRACT YOUTUBE THUMBNAIL ---
+const getYouTubeThumbnail = (url: string) => {
+  if (!url) return null
+  // Regex to handle various YouTube URL formats
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+  const match = url.match(regExp)
+  return (match && match[2].length === 11)
+    ? `https://img.youtube.com/vi/${match[2]}/maxresdefault.jpg` // High res thumbnail
+    : null
+}
+
+// --- MOCK DATA (With Real Links for testing) ---
 const workoutPlans: Plan[] = [
-  {
-    id: "1-week-reset",
-    title: "1 Week Pilates Schedule",
-    subtitle: "Reset your body & mind",
-    totalVideos: 7,
-    color: "bg-[#F2C7C7]", // Blush
-    videos: [
-      { id: "v1", day: "Day 1", title: "25MIN ‘Hourglass’ Full Body Pilates", duration: "25 min", videoUrl: "https://youtu.be/LMFQ6BiQ_TU?si=1ty1IHvXRllkT7ek" },
-      { id: "v2", day: "Day 2", title: "6MIN Daily Pilates Abs", duration: "7 min", videoUrl: "https://youtu.be/9H12WQfvFUU?si=H3kyiWVBtLpu3W2y" },
-      { id: "v3", day: "Day 3", title: "20MIN Hourglass Full Body Pilates", duration: "20 min", videoUrl: "https://youtu.be/spzi26BmbWU?si=lP0kKpDBO6A9pyFK" },
-      { id: "v4", day: "Day 4", title: "20MIN Lower Body Pilates", duration: "25 min", videoUrl: "https://youtu.be/wfoD3GHa2MI?si=sIC8qa7KjkHnfa6H" },
-      { id: "v5", day: "Day 5", title: "10MIN Toned Lower Abs & Waist", duration: "10 min", videoUrl: "https://youtu.be/jRimWH9Qe3E?si=UH_GoJJ-dFedoZgL" },
-      { id: "v6", day: "Day 6", title: "10MIN Daily Deep Core & Ab Pilates", duration: "10 min", videoUrl: "https://youtu.be/IoAgYYWlgQo?si=LgHMnTkmY_mz656i" },
-      { id: "v7", day: "Day 7", title: "Rest Day", duration: "30 min", videoUrl: "https://www.youtube.com/embed/PLACEHOLDER" },
-    ]
-  },
   {
     id: "busy-girl",
     title: "1 Week Busy Girl Pilates",
+    subtitle: "Reset your body & mind",
+    totalVideos: 7,
+    color: "bg-[#F2C7C7]", 
+    videos: [
+      // I added a real link here so you can see the thumbnail work
+      { id: "v1", day: "Day 1", title: "Full Body Awakening", duration: "25 min", videoUrl: "https://www.youtube.com/watch?v=y5JdwR4GrVo&list=PLYlEA5zVEdPHA8uOjByRczsBHFwmzAXFR" },
+      { id: "v2", day: "Day 2", title: "Waist Snatcher", duration: "15 min", videoUrl: "https://www.youtube.com/watch?v=FOw7OhefSSU&list=PLYlEA5zVEdPHA8uOjByRczsBHFwmzAXFR&index=2" },
+      { id: "v3", day: "Day 3", title: "Rest & Stretch", duration: "20 min", videoUrl: "https://www.youtube.com/watch?v=_3PYcPxniCE&list=PLYlEA5zVEdPHA8uOjByRczsBHFwmzAXFR&index=3" },
+      { id: "v4", day: "Day 4", title: "Lower Body Burn", duration: "25 min", videoUrl: "https://www.youtube.com/watch?v=zl4elC-cxho&list=PLYlEA5zVEdPHA8uOjByRczsBHFwmzAXFR&index=4" },
+      { id: "v5", day: "Day 5", title: "Pilates for Posture", duration: "20 min", videoUrl: "https://www.youtube.com/watch?v=kGTh0-Rn3u0&list=PLYlEA5zVEdPHA8uOjByRczsBHFwmzAXFR&index=5" },
+      
+    ]
+  },
+  {
+    id: "1 week reset",
+    title: "1 Week Pilates",
     subtitle: "Effective workouts in 15 mins",
     totalVideos: 5,
-    color: "bg-[#D5F3D8]", // Mint
+    color: "bg-[#D5F3D8]", 
     videos: [
-      { id: "bg1", day: "Day 1", title: "5 Min Ab + Waist", duration: "5 min", videoUrl: "https://www.youtube.com/embed/PLACEHOLDER" },
-      { id: "bg2", day: "Day 2", title: "Standing Arms", duration: "10 min", videoUrl: "https://www.youtube.com/embed/PLACEHOLDER" },
-      { id: "bg3", day: "Day 3", title: "Quick Glutes", duration: "12 min", videoUrl: "https://www.youtube.com/embed/PLACEHOLDER" },
-      { id: "bg4", day: "Day 4", title: "Morning Mobility", duration: "10 min", videoUrl: "https://www.youtube.com/embed/PLACEHOLDER" },
-      { id: "bg5", day: "Day 5", title: "Full Body Express", duration: "15 min", videoUrl: "https://www.youtube.com/embed/PLACEHOLDER" },
+      { id: "bg1", day: "Day 1", title: "5 Min Ab + Waist", duration: "5 min", videoUrl: "https://www.youtube.com/watch?v=y5JdwR4GrVo&list=PLYlEA5zVEdPHA8uOjByRczsBHFwmzAXFR" },
+      { id: "bg2", day: "Day 2", title: "Standing Arms", duration: "10 min", videoUrl: "" },
+      { id: "bg3", day: "Day 3", title: "Quick Glutes", duration: "12 min", videoUrl: "" },
+      { id: "bg4", day: "Day 4", title: "Morning Mobility", duration: "10 min", videoUrl: "" },
+      { id: "bg5", day: "Day 5", title: "Full Body Express", duration: "15 min", videoUrl: "" },
+      { id: "v6", day: "Day 6", title: "Total Core", duration: "15 min", videoUrl: "" },
+      { id: "v7", day: "Day 7", title: "Self Care Sunday", duration: "30 min", videoUrl: "" },
     ]
   },
   {
@@ -61,49 +74,97 @@ const workoutPlans: Plan[] = [
     title: "1 Month Pilates Plan",
     subtitle: "Transform your habits",
     totalVideos: 25,
-    color: "bg-[#FFF0F3]", // Light Pink
+    color: "bg-[#FFF0F3]", 
     videos: Array.from({ length: 25 }).map((_, i) => ({
       id: `m${i}`, day: `Day ${i + 1}`, title: `Month Challenge Day ${i + 1}`, duration: "20 min", videoUrl: ""
     }))
-  },
-  {
-    id: "flexibility",
-    title: "1 Week Flexibility",
-    subtitle: "Lengthen & Tone",
-    totalVideos: 6,
-    color: "bg-[#E6E6FA]", // Lavender
-    videos: [
-       { id: "f1", day: "Day 1", title: "Deep Stretch", duration: "20 min", videoUrl: "" },
-       // ... add more
-    ]
   },
 ]
 
 export default function WorkoutsPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
-  
-  // State to track completed video IDs (e.g., ["v1", "bg2"])
   const [completedVideos, setCompletedVideos] = useState<string[]>([])
+  
+  // --- STREAK & REMINDER STATE ---
+  const [streak, setStreak] = useState(0)
+  const [lastActiveDate, setLastActiveDate] = useState<string | null>(null)
+  const [showGentleReminder, setShowGentleReminder] = useState(false)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false)
 
-  // Load progress from LocalStorage on mount
+  // 1. Load Data on Mount
   useEffect(() => {
-    const saved = localStorage.getItem("pilatesProgress")
-    if (saved) setCompletedVideos(JSON.parse(saved))
+    const savedProgress = localStorage.getItem("pilatesProgress")
+    if (savedProgress) setCompletedVideos(JSON.parse(savedProgress))
+
+    const savedStreak = localStorage.getItem("pilatesStreak")
+    const savedDate = localStorage.getItem("pilatesLastDate")
+    const savedNotif = localStorage.getItem("pilatesNotifications")
+
+    if (savedStreak) setStreak(parseInt(savedStreak))
+    if (savedDate) setLastActiveDate(savedDate)
+    if (savedNotif === "true") setNotificationsEnabled(true)
+
+    const today = new Date().toLocaleDateString()
+    if (savedDate !== today) {
+        const timer = setTimeout(() => setShowGentleReminder(true), 1500)
+        return () => clearTimeout(timer)
+    }
   }, [])
 
-  // Toggle completion status
+  // 2. Handle Streak Logic
+  const updateStreak = () => {
+    const today = new Date().toLocaleDateString()
+    if (lastActiveDate !== today) {
+      const newStreak = streak + 1
+      setStreak(newStreak)
+      setLastActiveDate(today)
+      localStorage.setItem("pilatesStreak", newStreak.toString())
+      localStorage.setItem("pilatesLastDate", today)
+      setShowGentleReminder(false)
+    }
+  }
+
+  // 3. Reset Streak
+  const resetStreak = () => {
+    if (confirm("Do you want to reset your streak to 0?")) {
+        setStreak(0)
+        setLastActiveDate(null)
+        localStorage.setItem("pilatesStreak", "0")
+        localStorage.removeItem("pilatesLastDate")
+    }
+  }
+
+  // 4. Notifications
+  const toggleNotifications = async () => {
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notifications")
+      return
+    }
+    if (notificationsEnabled) {
+        setNotificationsEnabled(false)
+        localStorage.setItem("pilatesNotifications", "false")
+        return
+    }
+    const permission = await Notification.requestPermission()
+    if (permission === "granted") {
+      setNotificationsEnabled(true)
+      localStorage.setItem("pilatesNotifications", "true")
+      new Notification("You're all set! 🌸", {
+        body: "I'll send you a gentle reminder to move with calm every day."
+      })
+    }
+  }
+
   const toggleVideo = (videoId: string) => {
     setCompletedVideos(prev => {
-      const newSet = prev.includes(videoId) 
-        ? prev.filter(id => id !== videoId) 
-        : [...prev, videoId]
-      
+      const isCompleting = !prev.includes(videoId)
+      if (isCompleting) updateStreak()
+      const newSet = isCompleting ? [...prev, videoId] : prev.filter(id => id !== videoId)
       localStorage.setItem("pilatesProgress", JSON.stringify(newSet))
       return newSet
     })
   }
 
-  // Calculate progress percentage for a plan
   const getProgress = (plan: Plan) => {
     const completedCount = plan.videos.filter(v => completedVideos.includes(v.id)).length
     return Math.round((completedCount / plan.videos.length) * 100)
@@ -114,21 +175,60 @@ export default function WorkoutsPage() {
       <Cursor />
       <Navbar />
 
-      {/* --- HEADER --- */}
-      <section className="pt-32 pb-12 px-6 text-center">
+      <AnimatePresence>
+        {showGentleReminder && (
+            <motion.div
+                initial={{ opacity: 0, y: 50, x: "-50%" }}
+                animate={{ opacity: 1, y: 0, x: "-50%" }}
+                exit={{ opacity: 0, y: 20, x: "-50%" }}
+                className="fixed bottom-10 left-1/2 z-50 flex items-center gap-4 bg-zinc-900 text-white pl-6 pr-4 py-4 rounded-full shadow-2xl shadow-zinc-900/30 backdrop-blur-md"
+            >
+                <div>
+                    <p className="font-medium text-sm">Hi lovely! 🌿</p>
+                    <p className="text-xs text-zinc-400">A gentle reminder to move your body today.</p>
+                </div>
+                <button 
+                    onClick={() => setShowGentleReminder(false)}
+                    className="p-2 rounded-full hover:bg-zinc-800 transition-colors"
+                >
+                    <X size={16} />
+                </button>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
+      <section className="pt-32 pb-12 px-6 text-center relative">
         <h1 className="font-[family-name:var(--font-great-vibes)] text-6xl md:text-8xl text-[#FF9EAA] mb-4">
           Challenges
         </h1>
-        <p className="text-zinc-500 max-w-lg mx-auto">
-          Commit to yourself. Pick a plan, track your progress, and watch yourself grow stronger every day.
+        <p className="text-zinc-500 max-w-lg mx-auto mb-8">
+          Commit to yourself. Pick a plan, track your progress, and watch yourself grow stronger.
         </p>
+
+        <div className="inline-flex items-center gap-4 bg-white border border-zinc-100 shadow-sm rounded-full px-5 py-2">
+            <div className="flex items-center gap-2">
+                <Flame className={`${streak > 0 ? "fill-[#FFB7C5] text-[#FFB7C5]" : "text-zinc-300"} transition-colors`} size={20} />
+                <span className="font-bold text-zinc-800">{streak} Day Streak</span>
+            </div>
+            <div className="w-px h-4 bg-zinc-200" />
+            <button 
+                onClick={toggleNotifications}
+                className={`flex items-center gap-2 text-xs font-medium transition-colors ${notificationsEnabled ? "text-[#FFB7C5]" : "text-zinc-400 hover:text-zinc-600"}`}
+            >
+                <Bell size={16} className={notificationsEnabled ? "fill-[#FFB7C5]" : ""} />
+                {notificationsEnabled ? "On" : "Remind Me"}
+            </button>
+            <div className="w-px h-4 bg-zinc-200" />
+            <button onClick={resetStreak} className="text-xs font-medium text-zinc-400 hover:text-zinc-800 flex items-center gap-1 transition-colors">
+                <RotateCcw size={12} />
+            </button>
+        </div>
       </section>
 
-      {/* --- CONTENT AREA --- */}
       <div className="max-w-7xl mx-auto px-6">
         <AnimatePresence mode="wait">
           
-          {/* VIEW 1: PLAN GRID (The "Playlist" View) */}
+          {/* GRID VIEW */}
           {!selectedPlan ? (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -136,56 +236,74 @@ export default function WorkoutsPage() {
               exit={{ opacity: 0, x: -20 }}
               className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
-              {workoutPlans.map((plan) => (
-                <motion.div
-                  key={plan.id}
-                  layoutId={`card-${plan.id}`}
-                  onClick={() => setSelectedPlan(plan)}
-                  whileHover={{ y: -8 }}
-                  className="group cursor-pointer rounded-[2rem] border border-zinc-100 shadow-xl shadow-zinc-100 bg-white overflow-hidden relative"
-                >
-                  {/* Thumbnail Area */}
-                  <div className={`h-48 ${plan.color} relative flex items-center justify-center p-6`}>
-                    <div className="text-center z-10">
-                         <h3 className="font-serif text-2xl mb-1">{plan.title}</h3>
-                         <div className="inline-block bg-white/40 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-zinc-700">
-                             {plan.totalVideos} Videos
-                         </div>
-                    </div>
-                    {/* Hover Play Button Overlay */}
-                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
-                            <Play className="ml-1 fill-zinc-900 text-zinc-900" size={24} />
-                        </div>
-                    </div>
-                  </div>
+              {workoutPlans.map((plan) => {
+                // GET THUMBNAIL FROM THE FIRST VIDEO IN THE PLAN
+                const thumbnail = getYouTubeThumbnail(plan.videos[0]?.videoUrl)
 
-                  {/* Card Body & Progress */}
-                  <div className="p-6">
-                    <div className="flex justify-between items-end mb-4">
-                        <div>
-                            <p className="text-zinc-500 text-sm mb-1">{plan.subtitle}</p>
-                            <h4 className="font-semibold text-lg">{getProgress(plan)}% Complete</h4>
-                        </div>
-                        {getProgress(plan) === 100 && (
-                            <Trophy className="text-[#FFB7C5] animate-bounce" />
+                return (
+                    <motion.div
+                    key={plan.id}
+                    layoutId={`card-${plan.id}`}
+                    onClick={() => setSelectedPlan(plan)}
+                    whileHover={{ y: -8 }}
+                    className="group cursor-pointer rounded-[2rem] border border-zinc-100 shadow-xl shadow-zinc-100 bg-white overflow-hidden relative"
+                    >
+                    {/* THUMBNAIL AREA */}
+                    <div className={`h-48 ${plan.color} relative flex items-center justify-center overflow-hidden`}>
+                        {/* IF THUMBNAIL EXISTS, SHOW IMAGE. ELSE SHOW TITLE */}
+                        {thumbnail ? (
+                             <img 
+                                src={thumbnail} 
+                                alt={plan.title} 
+                                className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                             />
+                        ) : (
+                            <div className="text-center z-10 p-6">
+                                <h3 className="font-serif text-2xl mb-1">{plan.title}</h3>
+                                <div className="inline-block bg-white/40 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-zinc-700">
+                                    {plan.totalVideos} Videos
+                                </div>
+                            </div>
                         )}
+                        
+                        {/* Dark Overlay on Image for text readability if needed, or just hover effect */}
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-30 transition-opacity" />
+
+                        {/* PLAY BUTTON */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-all">
+                                <Play className="ml-1 fill-zinc-900 text-zinc-900" size={24} />
+                            </div>
+                        </div>
                     </div>
-                    
-                    {/* Progress Bar */}
-                    <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
-                        <div 
-                            className="h-full bg-[#FFB7C5] transition-all duration-1000 ease-out"
-                            style={{ width: `${getProgress(plan)}%` }}
-                        />
+
+                    <div className="p-6">
+                        <div className="flex justify-between items-end mb-4">
+                            <div>
+                                <h3 className="font-serif text-xl mb-1">{plan.title}</h3>
+                                <p className="text-zinc-500 text-sm mb-1">{plan.subtitle}</p>
+                            </div>
+                            {getProgress(plan) === 100 && (
+                                <Trophy className="text-[#FFB7C5] animate-bounce" />
+                            )}
+                        </div>
+                        
+                        <div className="flex items-center gap-3 mb-2">
+                             <span className="text-xs font-bold text-zinc-400">{getProgress(plan)}% Complete</span>
+                             <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-[#FFB7C5] transition-all duration-1000 ease-out"
+                                    style={{ width: `${getProgress(plan)}%` }}
+                                />
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                    </motion.div>
+                )
+              })}
             </motion.div>
           ) : (
-
-          /* VIEW 2: ACTIVE PLAN DETAIL (The "Checklist" View) */
+            /* DETAIL VIEW */
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -203,26 +321,29 @@ export default function WorkoutsPage() {
               </button>
 
               <div className="grid lg:grid-cols-3 gap-10">
-                {/* LEFT: Video Player / Highlight */}
                 <div className="lg:col-span-2">
-                   <motion.div layoutId={`card-${selectedPlan.id}`} className={`rounded-[2.5rem] ${selectedPlan.color} p-8 md:p-12 mb-8 relative overflow-hidden`}>
-                       <h2 className="text-4xl md:text-5xl font-serif mb-4 relative z-10">{selectedPlan.title}</h2>
-                       <p className="text-lg opacity-80 mb-8 relative z-10">{selectedPlan.subtitle}</p>
-                       
-                       {/* Featured Video (Usually the next incomplete one) */}
-                       <div className="aspect-video bg-black/5 rounded-2xl flex items-center justify-center relative z-10 backdrop-blur-sm border border-white/20">
-                            <p className="text-zinc-600 font-medium">Video Player Placeholder</p>
-                            {/* Replace this div with an actual iframe when you have links: 
-                                <iframe src={currentVideoUrl} className="w-full h-full rounded-2xl" ... /> 
-                            */}
-                       </div>
+                   {/* HEADER CARD IN DETAIL VIEW */}
+                   <motion.div layoutId={`card-${selectedPlan.id}`} className={`rounded-[2.5rem] relative overflow-hidden h-[400px]`}>
+                       {/* Background Image from First Video */}
+                       {getYouTubeThumbnail(selectedPlan.videos[0]?.videoUrl) ? (
+                           <>
+                            <img 
+                                src={getYouTubeThumbnail(selectedPlan.videos[0]?.videoUrl) || ""} 
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                           </>
+                       ) : (
+                           <div className={`absolute inset-0 ${selectedPlan.color}`} />
+                       )}
 
-                       {/* Decorative blobs */}
-                       <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-20 blur-[80px] rounded-full pointer-events-none" />
+                       <div className="absolute bottom-0 left-0 p-8 md:p-12 z-10 text-white">
+                           <h2 className="text-4xl md:text-5xl font-serif mb-2">{selectedPlan.title}</h2>
+                           <p className="text-lg opacity-90">{selectedPlan.subtitle}</p>
+                       </div>
                    </motion.div>
                 </div>
 
-                {/* RIGHT: Checklist */}
                 <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-xl shadow-zinc-100/50 p-8 h-fit">
                     <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
                         Your Schedule
